@@ -1,0 +1,169 @@
+<app-breadcrumb></app-breadcrumb>
+
+<div class="row">
+  <div class="col-md-12 stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+          <div>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              placeholder="Type to filter the pincode and name column..."
+              (keyup)="updateFilter($event)"
+              style="width: 300px;"
+            />
+          </div>
+          <div class="gap-4">
+            <button type="button" class="btn btn-danger btn-sm me-2" [disabled]="selected.length === 0" (click)="deleteSelectedRecords()">
+              Delete
+            </button>
+            <a href="users/add" class="btn btn-primary btn-sm">
+              + Add New
+            </a>
+          </div>
+        </div>
+        
+        <div class="table-responsive">
+          <ngx-datatable
+            #table
+            class="bootstrap"
+            [rows]="rows"
+            [loadingIndicator]="loadingIndicator"
+            [columnMode]="ColumnMode.force"
+            [footerHeight]="50"
+            [limit]="20"
+            rowHeight="auto"
+            [scrollbarH]="true"
+          >
+            <ngx-datatable-column [width]="50" [sortable]="false" [canAutoResize]="false" [draggable]="false" [resizeable]="false">
+              <ng-template ngx-datatable-header-template>
+                <input type="checkbox" [checked]="selected.length === rows.length" (change)="selectAll($event)" />
+              </ng-template>
+              <ng-template ngx-datatable-cell-template let-row="row" let-rowIndex="rowIndex">
+                <input type="checkbox" [checked]="isSelected(row)" (change)="toggleSelection(row)" />
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Image" [sortable]="false" [width]="55">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                <img [src]="row.user_image"
+                alt="{{ row.full_name }}"
+                width="30"
+                height="30">
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column [width]="90" name="Pin Code">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.pin_code }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Full Name">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.full_name }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Company Name">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.company_name }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Email Address">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.email }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Service Charges">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.service_charges }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Purchase Date">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.purchase_date | date:'yyyy-MM-dd' }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Subscribe End">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.subscribe_end | date:'yyyy-MM-dd' }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Remaining Days">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.remaining_days }} days
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Refer By">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.refer_by }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Username">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.username }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="City">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.city_name }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Status">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                <span class="badge"
+                  [ngClass]="{
+                    'bg-success text-white': row.status === 'Active',
+                    'bg-danger text-white': row.status === 'Inactive',
+                    'bg-dark text-white': row.status === 'Trail',
+                    'bg-warning text-dark': row.status === 'Disabled'
+                  }">
+                  {{ row.status }}
+                </span>
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Created at">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                <div>
+                  {{ row.created_by }}
+                  <br />
+                  <small>{{ row.created_at | date:'yyyy-MM-dd' }}</small>
+                </div>
+              </ng-template>
+            </ngx-datatable-column>
+        
+            <ngx-datatable-column name="Action" [sortable]="false">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                <span class="d-flex align-items-center">
+                  <a href="javascript:;" class="btn btn-info me-1 action-btn" (click)="resendEmail(row)">
+                    <i class="feather icon-repeat"></i>
+                  </a>
+
+                  <a href="users/profile/{{ row.id }}" class="btn btn-primary me-1 action-btn">
+                    <i class="feather icon-eye"></i>
+                  </a>
+                  
+                  <a href="users/edit/{{ row.id }}" class="btn btn-warning me-1 action-btn">
+                    <i class="feather icon-edit"></i>
+                  </a>
+                </span>
+              </ng-template>
+            </ngx-datatable-column>
+          </ngx-datatable>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
