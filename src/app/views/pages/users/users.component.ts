@@ -97,7 +97,7 @@ export class UsersComponent {
 
           // Process image URL
           user.user_image = user.user_image
-            ? `${this.IMAGE_URL}/uploads/users/${user.user_image}`
+            ? `${this.IMAGE_URL}/users/${user.user_image}`
             : 'images/placeholder.png';
         });
       },

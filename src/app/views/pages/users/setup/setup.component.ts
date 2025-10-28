@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ViewChild, TemplateRef, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ColumnMode, NgxDatatableModule } from '@siemens/ngx-datatable';
 import { NgbDateStruct, NgbDatepickerModule } from '@ng-bootstrap/ng-bootstrap';
 import { BreadcrumbComponent } from '../../../layout/breadcrumb/breadcrumb.component';
@@ -20,9 +21,6 @@ interface User {
   phone_number: string;
   gender: string | null;
   purchase_date?: NgbDateStruct | string | null;
-  services_fee: string | null;
-  subscribe_start?: NgbDateStruct | string | null;
-  subscribe_end?: NgbDateStruct | string | null;
   refer_by: string | null;
   refer_amount: string | null;
   date_of_birth?: NgbDateStruct | string | null;
@@ -73,24 +71,26 @@ export class UsersSetupComponent implements OnInit {
     last_name: '',
     username: '',
     email: '',
-    purchase_date: null,
-    services_fee: null,
-    subscribe_start: null,
-    subscribe_end: null,
-    refer_by: null,
-    refer_amount: null,
     phone_number: '',
-    gender: 'Male',
     date_of_birth: null,
     city_id: null,
-    status: 'Inactive',
+    gender: 'Male',
+    purchase_date: null,
+    refer_by: null,
+    refer_amount: null,
     address: '',
-    image: null
+    status: 'Active',
+    image: null,
+  };
+
+  companyRecord = {
+    name: '',
   };
   
   isEditMode = false;
   isLoading = false;
   globalErrorMessage: string = '';
+  errorMessage: string | null = null;
   selectedRows: number[] = [];
   formErrors: Record<string, string[]> = {};
   selected: any[] = [];
@@ -132,7 +132,7 @@ export class UsersSetupComponent implements OnInit {
     service_charges: null, 
     discount: null, 
     payment_method: null, 
-    subscription_status: null, 
+    subscription_status: 'Paid', 
     reason: '' 
   }];
   
@@ -150,12 +150,24 @@ export class UsersSetupComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private modalService: NgbModal
   ) {}
+
+  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
+  activeModal: NgbModalRef | null = null;
 
   ngOnInit(): void {
     this.fetchCompanies();
     this.fetchCities();
+
+    // Set current date only for new users (not edit mode)
+    const today = new Date();
+    this.currentRecord.purchase_date = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: today.getDate()
+    };
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -235,7 +247,7 @@ export class UsersSetupComponent implements OnInit {
 
         // Image preview setup
         if (user.images?.image_name) {
-          this.imagePreview = `${this.IMAGE_URL}/uploads/users/${user.images.image_name}`;
+          this.imagePreview = `${this.IMAGE_URL}/users/${user.images.image_name}`;
         }
 
         this.isEditMode = true;
@@ -265,7 +277,7 @@ export class UsersSetupComponent implements OnInit {
       next: (response) => {
         this.companies = response;
       },
-      error: (error) => console.error('Failed to fetch companies:', error)
+      error: (error) => console.error('Failed to fetch records:', error)
     });
   }
 
@@ -274,7 +286,7 @@ export class UsersSetupComponent implements OnInit {
       next: (response) => {
         this.cities = response;
       },
-      error: (error) => console.error('Failed to fetch cities:', error)
+      error: (error) => console.error('Failed to fetch records:', error)
     });
   }
 
@@ -305,6 +317,25 @@ export class UsersSetupComponent implements OnInit {
     }
     
     return '';
+  }
+
+  openModal(): void {
+    this.companyRecord = { name: '' };
+    this.formErrors = {};
+    this.activeModal = this.modalService.open(this.modalTemplate, { size: 'md' });
+  }
+
+  private resetForm(): void {
+    this.formErrors = {};
+    this.errorMessage = null;
+  }
+
+  private handleError(error: any): void {
+    if (error.error?.errors) {
+      this.formErrors = error.error.errors;
+    } else {
+      this.errorMessage = error.error?.message || 'An error occurred';
+    }
   }
 
   prepareFormData(): FormData {
@@ -399,38 +430,62 @@ export class UsersSetupComponent implements OnInit {
     }
   }
 
+  companySubmit(event: Event): void {
+    event.preventDefault();
+    this.isLoading = true;
+    this.formErrors = {};
+
+    this.http.post(`${this.API_URL}/companies`, this.companyRecord).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.fetchCompanies();
+        this.activeModal?.close();
+        this.companyRecord = { name: '' };
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.handleError(error);
+      }
+    });
+  }
+
   onSubmit(event: Event): void {
     event.preventDefault();
     this.isLoading = true;
     this.globalErrorMessage = '';
     this.formErrors = {};
 
+    // Always set purchase_date to current date for new user
+    if (!this.isEditMode) {
+      const today = new Date();
+      this.currentRecord.purchase_date = {
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: today.getDate()
+      };
+    }
+
     const formData = this.prepareFormData();
     formData.append('ng_url', this.NG_URL);
-
+    
     const endpoint = this.isEditMode ? 
       `${this.API_URL}/users/${this.currentRecord.id}?_method=PUT` : 
       `${this.API_URL}/users`;
 
     this.http.post(endpoint, formData).subscribe({
-      next: (response) => {
+      next: () => {
         this.isLoading = false;
         this.router.navigate(['/users']);
       },
       error: (error) => {
         this.isLoading = false;
-        
         if (error?.error?.errors) {
           this.formErrors = error.error.errors;
         }
-        
         this.globalErrorMessage = 'Please fill all required fields correctly.';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
   }
 
-  updateRecord(event: Event): void {
-    this.onSubmit(event);
-  }
 }

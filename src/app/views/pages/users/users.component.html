@@ -78,12 +78,6 @@
               </ng-template>
             </ngx-datatable-column>
             
-            <ngx-datatable-column name="Service Charges">
-              <ng-template ngx-datatable-cell-template let-row="row">
-                {{ row.service_charges }}
-              </ng-template>
-            </ngx-datatable-column>
-            
             <ngx-datatable-column name="Purchase Date">
               <ng-template ngx-datatable-cell-template let-row="row">
                 {{ row.purchase_date | date:'yyyy-MM-dd' }}

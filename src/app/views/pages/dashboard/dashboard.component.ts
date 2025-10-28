@@ -80,7 +80,7 @@ export class DashboardComponent implements OnInit {
 
           // Process image URL
           user.user_image = user.user_image
-            ? `${this.IMAGE_URL}/uploads/users/${user.user_image}`
+            ? `${this.IMAGE_URL}/users/${user.user_image}`
             : 'images/placeholder.png';
         });
       },
@@ -102,7 +102,7 @@ export class DashboardComponent implements OnInit {
   //       this.rows.forEach((user) => {
   //         // Process image URL
   //         user.user_image = user.user_image
-  //           ? `${this.IMAGE_URL}/uploads/users/${user.user_image}`
+  //           ? `${this.IMAGE_URL}/users/${user.user_image}`
   //           : 'images/placeholder.png';
   //       });
   //     },

@@ -44,10 +44,25 @@
                 <input type="checkbox" [checked]="isSelected(row)" (change)="toggleSelection(row)" />
               </ng-template>
             </ngx-datatable-column>
+
+            <ngx-datatable-column name="Image" [sortable]="false" [width]="55">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                <img [src]="row.company_image"
+                alt="{{ row.name }}"
+                width="30"
+                height="30">
+              </ng-template>
+            </ngx-datatable-column>
             
             <ngx-datatable-column name="Company Name">
               <ng-template ngx-datatable-cell-template let-row="row">
                 {{ row.name }}
+              </ng-template>
+            </ngx-datatable-column>
+            
+            <ngx-datatable-column name="Description">
+              <ng-template ngx-datatable-cell-template let-row="row">
+                {{ row.description }}
               </ng-template>
             </ngx-datatable-column>
             

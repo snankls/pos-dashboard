@@ -9,17 +9,17 @@ import { NgSelectComponent as MyNgSelectComponent } from '@ng-select/ng-select';
 import { environment } from '../../../environments/environment';
 import { BreadcrumbComponent } from '../../layout/breadcrumb/breadcrumb.component';
 
-interface Company {
-  id: number | null;
-  code: string;
-  name: string;
-  status: string | null;
-  created_by_id?: number;
-  created_by?: string;
-  created_at?: string;
-  updated_by_id?: number;
-  updated_at?: string;
-}
+// interface Company {
+//   id: number | null;
+//   name: string;
+//   description: string | null;
+//   status: string | null;
+//   created_by_id?: number;
+//   created_by?: string;
+//   created_at?: string;
+//   updated_by_id?: number;
+//   updated_at?: string;
+// }
 
 @Component({
   selector: 'app-companies',
@@ -36,11 +36,12 @@ interface Company {
 })
 export class CompaniesComponent implements OnInit {
   private API_URL = environment.API_URL;
+  private IMAGE_URL = environment.IMAGE_URL;
 
-  currentRecord: Company = {
+  currentRecord: any = {
     id: null,
-    code: '',
     name: '',
+    description: '',
     status: ''
   };
 
@@ -49,8 +50,10 @@ export class CompaniesComponent implements OnInit {
   isLoading: any = {};
   selected: any[] = [];
 
-  rows: Company[] = [];
-  temp: Company[] = [];
+  rows: { id: number; [key: string]: any }[] = [];
+  temp: { id: number; [key: string]: any }[] = [];
+  // rows: any[] = [];
+  // temp: any[] = [];
   loadingIndicator = true;
   reorderable = true;
   ColumnMode = ColumnMode;
@@ -102,20 +105,33 @@ export class CompaniesComponent implements OnInit {
   fetchStatus(): void {
     this.http.get<any>(`${this.API_URL}/status`).subscribe({
       next: (response) => {
-        this.status = Object.entries(response)
-          .filter(([key]) => key !== '')
-          .map(([key, value]) => ({ id: key, name: value as string }));
+        if (response && response.data) {
+          this.status = Object.entries(response.data)
+            .filter(([key]) => key !== '')
+            .map(([key, value]) => ({
+              id: key,
+              name: value as string
+            }));
+        } else {
+          console.error('Invalid response format:', response);
+        }
       },
-      error: (error) => console.error('Failed to fetch status:', error)
+      error: (error) => console.error('Failed to fetch record:', error)
     });
   }
 
   fetchCompanies(): void {
-    this.http.get<Company[]>(`${this.API_URL}/companies`).subscribe({
+    this.http.get<any[]>(`${this.API_URL}/companies`).subscribe({
       next: (response) => {
         this.rows = response;
         this.temp = [...response];
         this.loadingIndicator = false;
+
+        this.rows.forEach((company) => {
+          company.company_image = company.company_image
+            ? `${this.IMAGE_URL}/companies/${company.image_url}`
+            : 'images/placeholder.jpg';
+        });
       },
       error: (error) => {
         console.error('Error fetching companies:', error);
@@ -143,9 +159,9 @@ export class CompaniesComponent implements OnInit {
     this.errorMessage = null;
     this.currentRecord = {
       id: null,
-      code: '',
       name: '',
-      status: null
+      description: '',
+      status: 'Active'
     };
     this.activeModal = this.modalService.open(this.modalTemplate, { ariaLabelledBy: 'exampleModalLabel' });
   }
@@ -196,7 +212,7 @@ export class CompaniesComponent implements OnInit {
   }
 
   private resetForm(): void {
-    this.currentRecord = { id: null, code: '', name: '', status: '' };
+    this.currentRecord = { id: null, name: '', description: '', status: '' };
     this.formErrors = {};
     this.errorMessage = null;
   }

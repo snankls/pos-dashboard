@@ -4,10 +4,15 @@
   <div class="col-md-12 stretch-card">
     <div class="card">
       <div class="card-body">
-        <form class="forms-sample" (submit)="isEditMode ? updateRecord($event) : onSubmit($event)">
+        <form class="forms-sample" (submit)="onSubmit($event)">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="form-label">Select Company <span class="text-danger">*</span></label>
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label">
+                  Select Company <span class="text-danger">*</span>
+                </label>
+                <a href="javascript:;" class="text-primary small" (click)="openModal()">Add New Company</a>
+              </div>
               <ng-select
                 [items]="companies"
                 bindLabel="name"
@@ -81,7 +86,7 @@
             </div>
         
             <div class="col-md-3 mb-3">
-              <label class="form-label">Select Gender <span class="text-danger">*</span></label>
+              <label class="form-label">Select Gender</label>
               <ng-select
                 [items]="gender"
                 bindLabel="name"
@@ -289,3 +294,28 @@
     </div>
   </div>
 </div>
+
+<!-- Modal -->
+<ng-template #modalTemplate let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Add New Company</h5>
+    <button type="button" class="btn-close" (click)="modal.close()" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <form (submit)="companySubmit($event)">
+      <div class="mb-3">
+        <label class="form-label">Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="name"
+          [(ngModel)]="companyRecord.name" (input)="clearError('name')">
+        <div class="text-danger mt-1" *ngIf="formErrors.name">{{ formErrors.name[0] }}</div>
+      </div>
+
+      <div class="text-end">
+        <button type="submit" [disabled]="isLoading" class="btn btn-primary">
+          <span *ngIf="!isLoading">Save</span>
+          <span *ngIf="isLoading"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>
