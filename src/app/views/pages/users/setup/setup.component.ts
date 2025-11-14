@@ -96,6 +96,7 @@ export class UsersSetupComponent implements OnInit {
   selected: any[] = [];
   companies: any[] = [];
   cities: any[] = [];
+  payment_method: { id: string, name: string }[] = [];
   
   // Dropdown options
   gender: { id: string; name: string }[] = [
@@ -109,14 +110,6 @@ export class UsersSetupComponent implements OnInit {
     { id: 'Inactive', name: 'Inactive' },
     { id: 'Trail', name: 'Trail' },
     { id: 'Disabled', name: 'Disabled' },
-  ];
-  
-  payment_method: { id: string; name: string }[] = [
-    { id: 'Cash', name: 'Cash' },
-    { id: 'Bank', name: 'Bank' },
-    { id: 'JazzCash', name: 'JazzCash' },
-    { id: 'Easypaisa', name: 'Easypaisa' },
-    { id: 'Other', name: 'Other' },
   ];
   
   subscription_status: { id: string; name: string }[] = [
@@ -160,6 +153,7 @@ export class UsersSetupComponent implements OnInit {
   ngOnInit(): void {
     this.fetchCompanies();
     this.fetchCities();
+    this.fetchPaymentMethod();
 
     // Set current date only for new users (not edit mode)
     const today = new Date();
@@ -234,7 +228,7 @@ export class UsersSetupComponent implements OnInit {
   }
 
   fetchUser(id: number): void {
-    this.http.get<any>(`${this.API_URL}/user/${id}`).subscribe({
+    this.http.get<any>(`${this.API_URL}/admin/user/${id}`).subscribe({
       next: (user) => {
         this.currentRecord = {
           ...this.currentRecord,
@@ -287,6 +281,26 @@ export class UsersSetupComponent implements OnInit {
         this.cities = response;
       },
       error: (error) => console.error('Failed to fetch records:', error)
+    });
+  }
+
+  fetchPaymentMethod(): void {
+    this.http.get<any>(`${this.API_URL}/payment-method`).subscribe({
+      next: (response) => {
+        if (response && response.data && typeof response.data === 'object') {
+          this.payment_method = Object.entries(response.data).map(([key, value]) => ({
+            id: String(key),
+            name: String(value)
+          }));
+        } else {
+          console.error('Invalid response format for payment_method:', response);
+          this.payment_method = [];
+        }
+      },
+      error: (error) => {
+        console.error('Failed to fetch payment_method:', error);
+        this.payment_method = [];
+      }
     });
   }
 
@@ -469,8 +483,8 @@ export class UsersSetupComponent implements OnInit {
     formData.append('ng_url', this.NG_URL);
     
     const endpoint = this.isEditMode ? 
-      `${this.API_URL}/users/${this.currentRecord.id}?_method=PUT` : 
-      `${this.API_URL}/users`;
+      `${this.API_URL}/admin/users/${this.currentRecord.id}?_method=PUT` : 
+      `${this.API_URL}/admin/users`;
 
     this.http.post(endpoint, formData).subscribe({
       next: () => {

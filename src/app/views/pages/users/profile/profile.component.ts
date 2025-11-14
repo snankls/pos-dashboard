@@ -6,6 +6,17 @@ import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
 import { BreadcrumbComponent } from '../../../layout/breadcrumb/breadcrumb.component';
 import { environment } from '../../../../environments/environment';
 
+interface Subscription {
+  subscribe_start?: string;
+  subscribe_end?: string;
+  service_charges?: number;
+  discount?: number;
+  payment_method?: string;
+  reason?: string;
+  subscription_status?: string;
+  remaining_days?: number;
+}
+
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -22,7 +33,8 @@ export class ProfileComponent {
   
   totalServiceCharges: number = 0;
   currentRecord: any = {};
-  itemsList: any = {} = [];
+  itemsList: Subscription[] = [];
+
   loadingIndicator = true;
   isEditMode = false;
   image: string | ArrayBuffer | null = null;
@@ -53,33 +65,45 @@ export class ProfileComponent {
   }
 
   loadUser(id: number) {
-    this.http.get<any>(`${this.API_URL}/user/${id}`).subscribe(user => {
+    this.loadingIndicator = true;
+
+    this.http.get<any>(`${this.API_URL}/admin/user/${id}`).subscribe(user => {
       this.currentRecord = user;
-      
-      this.itemsList = user.subscriptions || [];
-      this.calculateTotalServiceCharges();
 
+      // Use 'all_subscriptions' or 'subscriptions'
+      this.itemsList = user.all_subscriptions || user.subscriptions || [];
+
+      // Calculate remaining_days for each subscription
       const today = new Date();
-        today.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
 
-        this.rows.forEach((user) => {
-          // Calculate remaining days safely
-          if (user.subscribe_end) {
-            const endDate = new Date(user.subscribe_end);
-            endDate.setHours(0, 0, 0, 0);
+      this.itemsList.forEach((sub: Subscription) => {
+        if (sub.subscribe_end) {
+          // Parse YYYY-MM-DD safely
+          const [year, month, day] = sub.subscribe_end.split('-').map(Number);
+          const endDate = new Date(year, month - 1, day); // month is 0-based
+          endDate.setHours(0, 0, 0, 0);
 
-            const diffTime = endDate.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
 
-            user.remaining_days = diffDays >= 0 ? diffDays : 0;
-          } else {
-            user.remaining_days = 0;
-          }
-        });
+          const diffTime = endDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // add 1 to include today
+
+          sub.remaining_days = diffDays >= 0 ? diffDays : 0;
+        } else {
+          sub.remaining_days = 0;
+        }
+      });
+
+      // Calculate total service charges
+      this.totalServiceCharges = this.itemsList.reduce((sum: number, sub: Subscription) => {
+        return sum + (sub.service_charges || 0);
+      }, 0);
 
       // If user has image
       if (user.user_image) {
-        this.imagePreview = `${this.IMAGE_URL}/users/${user.user_image}`;
+        this.imagePreview = `${this.IMAGE_URL}/admin/users/${user.user_image}`;
       }
 
       this.isEditMode = true;

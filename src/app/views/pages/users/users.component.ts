@@ -72,7 +72,7 @@ export class UsersComponent {
   fetchUsers(): void {
     this.loadingIndicator = true;
 
-    this.http.get<any[]>(`${this.API_URL}/users`).subscribe({
+    this.http.get<any[]>(`${this.API_URL}/admin/users`).subscribe({
       next: (response) => {
         this.rows = response;
         this.temp = [...response];
@@ -109,7 +109,7 @@ export class UsersComponent {
   
   resendEmail(user: any) {
     if (confirm('Are you sure you want to resend email to this user?')) {
-      this.http.post(`${this.API_URL}/users/resend-email`, { user_id: user.id, ng_url: this.NG_URL }).subscribe(
+      this.http.post(`${this.API_URL}/admin/users/resend-email`, { user_id: user.id, ng_url: this.NG_URL }).subscribe(
         (response: any) => {
           alert(response.message);
         },
@@ -124,7 +124,7 @@ export class UsersComponent {
   deleteSelectedRecords(): void {
     if (confirm('Are you sure you want to permanent delete the selected record(s)?')) {
       const ids = this.selected.map(row => row.id);
-      const deleteRequests = ids.map(id => this.http.delete(`${this.API_URL}/users/${id}`).toPromise());
+      const deleteRequests = ids.map(id => this.http.delete(`${this.API_URL}/admin/users/${id}`).toPromise());
 
       Promise.all(deleteRequests)
         .then(() => {
