@@ -8,21 +8,21 @@ export const MENU: MenuItem[] = [
   {
     label: 'Dashboard',
     icon: 'home',
-    link: '/dashboard'
+    link: 'dashboard'
   },
   {
     label: 'Companies',
     icon: 'codesandbox',
-    link: '/companies',
+    link: 'companies',
   },
   {
     label: 'Notice Board',
     icon: 'clipboard',
-    link: '/notice-board',
+    link: 'notice-board',
   },
   {
     label: 'Users',
     icon: 'user',
-    link: '/users',
+    link: 'users',
   },
 ];
