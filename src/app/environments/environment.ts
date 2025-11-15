@@ -3,5 +3,5 @@ export const environment = {
     API_URL: 'http://127.0.0.1:8000/api',
     IMAGE_URL: 'http://127.0.0.1:8000/uploads',
     LIVE_URL: 'http://127.0.0.1:8000',
-    NG_URL: 'http://localhost:4300',
+    NG_URL: 'http://localhost:4200',
 };

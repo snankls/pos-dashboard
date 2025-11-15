@@ -339,11 +339,6 @@ export class UsersSetupComponent implements OnInit {
     this.activeModal = this.modalService.open(this.modalTemplate, { size: 'md' });
   }
 
-  private resetForm(): void {
-    this.formErrors = {};
-    this.errorMessage = null;
-  }
-
   private handleError(error: any): void {
     if (error.error?.errors) {
       this.formErrors = error.error.errors;
