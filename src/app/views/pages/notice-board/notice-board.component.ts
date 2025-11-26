@@ -172,11 +172,11 @@ export class NoticeBoardComponent implements OnInit {
     }
 
     // Decide whether to add or update
-    const request$ = this.currentRecord.id
+    const request = this.currentRecord.id
       ? this.http.put(`${this.API_URL}/notice-boards/${this.currentRecord.id}`, this.currentRecord)
       : this.http.post(`${this.API_URL}/notice-boards`, this.currentRecord);
 
-    request$.subscribe({
+    request.subscribe({
       next: (response) => {
         this.isLoading = false;
         this.fetchNoticeBoards();

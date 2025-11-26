@@ -166,43 +166,6 @@ export class CompaniesComponent implements OnInit {
     this.activeModal = this.modalService.open(this.modalTemplate, { ariaLabelledBy: 'exampleModalLabel' });
   }
 
-  // Update your onSubmit and updateRecord methods
-  onSubmit(event: Event): void {
-    event.preventDefault();
-    this.isLoading = true;
-    
-    this.http.post(`${this.API_URL}/companies`, this.currentRecord).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.fetchCompanies();
-        this.activeModal?.close();
-        this.resetForm();
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.handleError(error);
-      }
-    });
-  }
-
-  updateRecord(event: Event): void {
-    event.preventDefault();
-    this.isLoading = true;
-    
-    this.http.put(`${this.API_URL}/companies/${this.currentRecord.id}`, this.currentRecord).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.fetchCompanies();
-        this.activeModal?.close();
-        this.resetForm();
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.handleError(error);
-      }
-    });
-  }
-
   private handleError(error: any): void {
     if (error.error?.errors) {
       this.formErrors = error.error.errors;
@@ -215,6 +178,28 @@ export class CompaniesComponent implements OnInit {
     this.currentRecord = { id: null, name: '', description: '', status: '' };
     this.formErrors = {};
     this.errorMessage = null;
+  }
+
+  onSubmit(event: Event): void {
+    event.preventDefault();
+    this.isLoading = true;
+
+    const request = this.currentRecord.id
+      ? this.http.put(`${this.API_URL}/companies/${this.currentRecord.id}`, this.currentRecord)
+      : this.http.post(`${this.API_URL}/companies`, this.currentRecord);
+
+    request.subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.fetchCompanies();
+        this.activeModal?.close();
+        this.resetForm();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.handleError(error);
+      }
+    });
   }
 
   deleteSelectedRecords(): void {
